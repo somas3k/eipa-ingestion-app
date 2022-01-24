@@ -11,12 +11,12 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public class DynamicEipaEndpointPoller implements Runnable {
+public class DynamicEipaEndpointPooler implements Runnable {
     private final WebClient webClient;
     private final Map<String, PointInfo> actualPoints;
     private final Downstream<EventPointStatus> downstream;
 
-    public DynamicEipaEndpointPoller(WebClient webClient, Map<String, PointInfo> actualPoints, Downstream<EventPointStatus> downstream) {
+    public DynamicEipaEndpointPooler(WebClient webClient, Map<String, PointInfo> actualPoints, Downstream<EventPointStatus> downstream) {
         this.webClient = webClient;
         this.actualPoints = actualPoints;
         this.downstream = downstream;
@@ -35,7 +35,7 @@ public class DynamicEipaEndpointPoller implements Runnable {
     }
 
     private boolean isStatusChanged(PointInfo pointInfo) {
-        PointInfo actualPointInfo = actualPoints.get(pointInfo.getCode());
+        var actualPointInfo = actualPoints.get(pointInfo.getCode());
         if (actualPointInfo == null || statusChanged(actualPointInfo, pointInfo)) {
             actualPoints.put(pointInfo.getCode(), pointInfo);
             return true;

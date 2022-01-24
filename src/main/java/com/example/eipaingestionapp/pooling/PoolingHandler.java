@@ -11,7 +11,6 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -27,8 +26,8 @@ public class PoolingHandler {
 
     @PostConstruct
     private void init() {
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-        DynamicEipaEndpointPoller poller = new DynamicEipaEndpointPoller(webClient, actualPoints, downstream);
+        var executorService = Executors.newScheduledThreadPool(1);
+        var poller = new DynamicEipaEndpointPooler(webClient, actualPoints, downstream);
         executorService.scheduleAtFixedRate(poller, 0, 15, TimeUnit.SECONDS);
     }
 }
