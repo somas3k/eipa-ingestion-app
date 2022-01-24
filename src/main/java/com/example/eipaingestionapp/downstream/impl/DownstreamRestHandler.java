@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.List;
 
 @Component
@@ -33,6 +34,11 @@ public class DownstreamRestHandler<T> implements Downstream<T> {
                         }
                 )
                 .bodyToMono(Void.class)
+                .timeout(Duration.ofMillis(100))
+                .onErrorResume(throwable -> {
+                    LOGGER.warn("Sending events ended with error", throwable);
+                    return Mono.empty();
+                })
                 .subscribe();
     }
 }
