@@ -6,6 +6,7 @@ import com.example.eipaingestionapp.pooling.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,10 @@ public class DynamicEipaEndpointPoolingWorker implements Runnable {
         webClient.get()
                 .retrieve()
                 .bodyToMono(DynamicEndpointResponse.class)
+                .onErrorResume(throwable -> {
+                    LOGGER.warn("Cannot pool data from EIPA", throwable);
+                    return Mono.empty();
+                })
                 .subscribe(dynamicEndpointResponse -> sendToDownstream(dynamicEndpointResponse.getData().stream()
                         .filter(pointInfo -> Objects.nonNull(pointInfo.getStatus()))
                         .filter(this::isStatusChanged)
