@@ -14,8 +14,8 @@ import java.util.List;
 @Component
 public class DownstreamRestHandler<T> implements Downstream<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DownstreamRestHandler.class);
-    private final WebClient webClient;
 
+    private final WebClient webClient;
 
     public DownstreamRestHandler(@Qualifier("downstreamClient") WebClient webClient) {
         this.webClient = webClient;

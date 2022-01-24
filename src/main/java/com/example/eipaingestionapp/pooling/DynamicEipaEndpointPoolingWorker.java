@@ -3,6 +3,8 @@ package com.example.eipaingestionapp.pooling;
 import com.example.eipaingestionapp.downstream.api.Downstream;
 import com.example.eipaingestionapp.downstream.api.model.Event;
 import com.example.eipaingestionapp.pooling.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.List;
@@ -11,12 +13,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public class DynamicEipaEndpointPooler implements Runnable {
+public class DynamicEipaEndpointPoolingWorker implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DynamicEipaEndpointPoolingWorker.class);
+
     private final WebClient webClient;
     private final Map<String, PointInfo> actualPoints;
     private final Downstream<EventPointStatus> downstream;
 
-    public DynamicEipaEndpointPooler(WebClient webClient, Map<String, PointInfo> actualPoints, Downstream<EventPointStatus> downstream) {
+    public DynamicEipaEndpointPoolingWorker(WebClient webClient, Map<String, PointInfo> actualPoints, Downstream<EventPointStatus> downstream) {
         this.webClient = webClient;
         this.actualPoints = actualPoints;
         this.downstream = downstream;
@@ -24,6 +28,7 @@ public class DynamicEipaEndpointPooler implements Runnable {
 
     @Override
     public void run() {
+        LOGGER.info("Pooling data from EIPA...");
         webClient.get()
                 .retrieve()
                 .bodyToMono(DynamicEndpointResponse.class)
@@ -49,6 +54,7 @@ public class DynamicEipaEndpointPooler implements Runnable {
     }
 
     private void sendToDownstream(List<Event<EventPointStatus>> events) {
+        LOGGER.info("Sending {} events to downstream...", events.size());
         downstream.sendEvents(events);
     }
 
