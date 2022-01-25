@@ -2,6 +2,7 @@ package com.example.eipaingestionapp.pooling;
 
 import com.example.eipaingestionapp.downstream.api.Downstream;
 import com.example.eipaingestionapp.downstream.api.model.Event;
+import com.example.eipaingestionapp.pooling.converter.PointInfoToEventPointStatusConverter;
 import com.example.eipaingestionapp.pooling.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class DynamicEipaEndpointPoolingWorker implements Runnable {
                 .subscribe(dynamicEndpointResponse -> sendToDownstream(dynamicEndpointResponse.getData().stream()
                         .filter(pointInfo -> Objects.nonNull(pointInfo.getStatus()))
                         .filter(this::isStatusChanged)
-                        .map(this::convertToEvent)
+                        .map(PointInfoToEventPointStatusConverter::convertToEvent)
                         .collect(Collectors.toList())));
     }
 
@@ -61,26 +62,5 @@ public class DynamicEipaEndpointPoolingWorker implements Runnable {
     private void sendToDownstream(List<Event<EventPointStatus>> events) {
         LOGGER.info("Sending {} events to downstream...", events.size());
         downstream.sendEvents(events);
-    }
-
-    private Event<EventPointStatus> convertToEvent(PointInfo pointInfo) {
-        return new Event<>(EventPointStatus.builder()
-                .pointId(pointInfo.getCode())
-                .status(calculateStatus(pointInfo.getStatus()))
-                .originalTs(pointInfo.getStatus().getTimestamp())
-                .build());
-    }
-
-    private Status calculateStatus(PointStatus status) {
-        if (status.getAvailability() == 1 && status.getStatus() == 1) {
-            return Status.AVAILABLE;
-        }
-        if (status.getAvailability() == 1 && status.getStatus() == 0) {
-            return Status.OCCUPIED;
-        }
-        if (status.getAvailability() == 0) {
-            return Status.OUT_OF_ORDER;
-        }
-        return Status.UNKNOWN;
     }
 }
